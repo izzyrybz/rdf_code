@@ -1,2 +1,2 @@
 # rdf_code
- trail to get git info into a rdf
+ trial to get git info into a rdf
