@@ -18,9 +18,9 @@ g.add((test, FOAF.mbox, URIRef("mailto:test@example.org")))'''
 
 #file__name= input("Please provide the file which the history of commits exists:")
 path = '/home/vm/Git2RDF_test/commithistory.txt'
-commit = {"commit_ref": "", "author": "", "action": "", "date":"" }
+commit = {"commit_ref": "", "author": "", "description": "", "date":"" }
 history = []
-date_format = "%d,%b,%Y,%H:%M:%S%z"
+date_format = " %a %b %d %H:%M:%S %Y %z"
 
 
 
@@ -32,46 +32,67 @@ def isdictempty(dict):
             return True
 
 
+def info_between_elements(lst, A, B):
+    #print(lst)
+    result = []
+    first_commit_flag = True
+    found_A = False
+    for i, elem in enumerate(lst):
+        #print(elem)
+        if A in elem:
+            found_A = True
+        if found_A:
+            elem = elem.strip()
+            #print(elem)
+            result.append(elem)
+        if B in elem:
+            if first_commit_flag:
+                first_commit_flag=False
+                continue
+            else:
+                break
+    result.pop(0)
+    result.pop(1)
+    #for result
+    #print(result)
+    return result
+
+
 
 with open(path,'r') as f:
     for line in f:
-        #trim whitespace and split line
-        if(line.isspace()):
+        line = line.strip()
+        line = line.split(',')
+        if line == ['']:
             continue
-        line = line.split()
         #print(line)
-      
         for index, element in enumerate(line):
             #print(index,element)
-            if (element == 'commit' and not (line[index-1]== 'Initial')):
-                if(isdictempty(commit)):
-                    #This is the first commit in the file
-                    #print("This is the first commit in the file")
-                    commit["commit_ref"]  = line[index+1]
-                else:
-                    #This is a start of a new commit
-                    history.append(commit)
-                    commit = copy.deepcopy(commit)
-                    commit["commit_ref"] = line[index + 1]
-
-            if(element == 'Author:'): 
+            if ('commit' in element and not ('Initial'in element)):
+                hash = element[element.index(":") + 1:]
+                commit["commit_ref"]  = hash
+            if('Author:' in element): 
                 #print("adding person",line[index+1])
-                commit["author"] = line[index+1]
-            if(element == 'Date:'):
-                date = line[index+3]+','+line[index+2]+','+line[index+5]+','+line[index+4]+line[index+6]
+                name = element[element.index(":") + 1:]
+                commit["author"] = name
+            if('Description:' in element): 
+                #print("adding person",line[index+1])
+                description = element[element.index(":") + 1:]
+                commit["description"] = description
+            if('Date:' in element):
+                date = element[element.index(":") + 1:]
                 #print("THIS IS DATE:",date)
                 date_obj = datetime.strptime(date, date_format)
                 #print(date_obj)
                 commit["date"] = date_obj
-                
+            if('------' in element):
+                history.append(commit)
+                commit = copy.deepcopy(commit)
 
 
-        #history.append(commit)
+            #print("--"*15)
+            #print(commit)
     print(history)
-
-            
-
-
 #question =  input("What is your question?")
 
 
